@@ -55,15 +55,31 @@ cd ..
 
 ### Daily run
 
+A single script (`scripts/run-all.sh`) runs the full pipeline in either Docker or baremetal mode:
+
+```bash
+# Docker (default — recommended; isolated, reproducible)
+./scripts/run-all.sh
+
+# Baremetal (uses local cargo + uv)
+./scripts/run-all.sh --mode baremetal
+
+# Forward flags to either stage
+./scripts/run-all.sh --fetch-args "--tags IA,Rust --since-days 7"
+./scripts/run-all.sh --mode baremetal --process-args "--skip-audio"
+
+# See all options
+./scripts/run-all.sh --help
+```
+
+Or run the two stages manually:
+
 ```bash
 # 1. Fetch feeds (writes leitor_links/output/YYYY-MM-DD/*.json)
-cd leitor_links
-cargo run --release -- fetch
-cd ..
+cd leitor_links && cargo run --release -- fetch && cd ..
 
 # 2. Build the podcast (writes podcast_processor/data/outputs/YYYY-MM-DD/)
-cd podcast_processor
-uv run podcast-processor run
+cd podcast_processor && uv run podcast-processor run
 ```
 
 The outputs are:
