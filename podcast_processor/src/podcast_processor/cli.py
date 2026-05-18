@@ -110,7 +110,9 @@ def run(
         BarColumn(),
         MofNCompleteColumn(),
         TextColumn("•"),
-        TextColumn("[green]{task.fields[hits]} cached[/green] / [yellow]{task.fields[misses]} new[/yellow]"),
+        TextColumn(
+            "[green]{task.fields[hits]} cached[/green] / [yellow]{task.fields[misses]} new[/yellow]"
+        ),
         TextColumn("•"),
         TimeElapsedColumn(),
         TextColumn("ETA"),
@@ -118,9 +120,7 @@ def run(
         console=console,
         transient=False,
     ) as progress:
-        task = progress.add_task(
-            "summaries", total=len(articles), hits=0, misses=0
-        )
+        task = progress.add_task("summaries", total=len(articles), hits=0, misses=0)
         for art in articles:
             head = art.title or art.source
             short = (head[:60] + "…") if len(head) > 60 else head

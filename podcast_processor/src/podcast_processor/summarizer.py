@@ -84,9 +84,7 @@ def generate_hot_topics(
             "Responda em PT-BR, em formato de bullets markdown."
         )
     )
-    headlines = "\n".join(
-        f"- [{a.source}] {a.title or '(sem título)'}" for a in articles
-    )
+    headlines = "\n".join(f"- [{a.source}] {a.title or '(sem título)'}" for a in articles)
     extras = "\n\n".join(context_excerpts[:10]) if context_excerpts else ""
     user = HumanMessage(
         content=(

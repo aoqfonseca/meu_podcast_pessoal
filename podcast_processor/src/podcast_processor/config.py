@@ -35,8 +35,7 @@ class Settings:
         key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         if not key:
             raise RuntimeError(
-                "GOOGLE_API_KEY (or GEMINI_API_KEY) not set. "
-                "Put it in podcast_processor/.env"
+                "GOOGLE_API_KEY (or GEMINI_API_KEY) not set. Put it in podcast_processor/.env"
             )
         return cls(
             google_api_key=key,
