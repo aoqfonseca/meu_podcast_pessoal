@@ -1,0 +1,26 @@
+# Run these hooks on every `git commit`.
+#
+# First-time setup:
+#   uv tool install pre-commit       # or: pipx install pre-commit
+#   pre-commit install
+#
+# Run manually against the whole repo:
+#   pre-commit run --all-files
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff-format
+        files: ^podcast_processor/.*\.py$
+      - id: ruff
+        args: [--fix]
+        files: ^podcast_processor/.*\.py$
+
+  - repo: local
+    hooks:
+      - id: ty-check
+        name: ty type check (podcast_processor)
+        entry: bash -c 'cd podcast_processor && uvx ty check src/'
+        language: system
+        files: ^podcast_processor/.*\.py$
+        pass_filenames: false

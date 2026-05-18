@@ -195,6 +195,21 @@ uv run podcast-processor info   # confirms env / models resolve correctly
 
 Live API calls (Gemini, real FAISS persistence, sentence-transformers download) are kept **out** of the default test suite to keep CI free and fast. Mark integration tests with `@pytest.mark.live` if you add them. See [the project README](./podcast_processor/README.md) for the full module layout and configuration variables.
 
+### Pre-commit hooks
+
+This repo ships a [`pre-commit`](https://pre-commit.com/) config that runs
+`ruff format`, `ruff` (with `--fix`), and `ty check` on every commit. Install
+it once:
+
+```bash
+uv tool install pre-commit          # or: pipx install pre-commit
+pre-commit install                  # writes .git/hooks/pre-commit
+pre-commit run --all-files          # optional: first pass over the whole repo
+```
+
+The `ty` hook shells out to `uvx ty check src/` inside `podcast_processor/`,
+so no extra venv is needed.
+
 ### General guidelines
 
 - Use feature branches; open a PR against `main`.
