@@ -1,0 +1,159 @@
+"""Command-line entrypoint."""
+
+from __future__ import annotations
+
+from datetime import date, datetime
+from pathlib import Path
+from typing import Optional
+
+import typer
+from rich.console import Console
+
+from . import config, loader, render, script_writer, summarizer, tts, vectorstore
+
+app = typer.Typer(no_args_is_help=True, add_completion=False)
+console = Console()
+
+
+def _parse_day(value: Optional[str]) -> date | None:
+    if value is None or value.lower() == "latest":
+        return None
+    if value.lower() == "today":
+        return date.today()
+    return date.fromisoformat(value)
+
+
+@app.command()
+def run(
+    date_str: Optional[str] = typer.Option(
+        None, "--date", help="YYYY-MM-DD, 'today', or 'latest' (default: latest)."
+    ),
+    input_root: Path = typer.Option(
+        config.DEFAULT_INPUT_ROOT, "--input", help="Root with YYYY-MM-DD subfolders."
+    ),
+    output_root: Path = typer.Option(
+        config.DEFAULT_OUTPUT_ROOT, "--output", help="Where to write the report + audio."
+    ),
+    faiss_dir: Path = typer.Option(
+        config.DEFAULT_FAISS_DIR, "--faiss-dir", help="Persistent FAISS index path."
+    ),
+    skip_audio: bool = typer.Option(False, "--skip-audio", help="Don't call TTS."),
+    skip_vectorize: bool = typer.Option(
+        False, "--skip-vectorize", help="Skip FAISS ingestion (still loads index for retrieval)."
+    ),
+    minutes: int = typer.Option(5, "--minutes", help="Target podcast length in minutes."),
+) -> None:
+    """Build the daily podcast for a given day folder."""
+    settings = config.Settings.from_env()
+    day = _parse_day(date_str)
+    folder = loader.resolve_input_folder(input_root, day)
+    day_iso = folder.name
+    console.print(f"[bold cyan]→[/bold cyan] processing {folder}")
+
+    articles = loader.load_day(folder)
+    if not articles:
+        raise typer.BadParameter(f"no usable articles found in {folder}")
+    console.print(f"  loaded [bold]{len(articles)}[/bold] articles")
+
+    embeddings = vectorstore.build_embeddings(settings.embedding_model)
+    if not skip_vectorize:
+        docs = vectorstore.articles_to_documents(
+            articles, day_iso, settings.chunk_size, settings.chunk_overlap
+        )
+        store = vectorstore.ingest(docs, faiss_dir, embeddings)
+        console.print(f"  FAISS index now at [bold]{store.index.ntotal}[/bold] vectors")
+    else:
+        store = vectorstore.load_or_create(faiss_dir, embeddings)
+        if store is None:
+            console.print("  [yellow]no existing FAISS index — retrieval will be skipped[/yellow]")
+
+    context_excerpts: list[str] = []
+    if store is not None:
+        try:
+            hits = store.similarity_search("temas em destaque, tendências de tecnologia hoje", k=8)
+            context_excerpts = [
+                f"[{h.metadata.get('source', '?')}] {h.page_content[:400]}" for h in hits
+            ]
+        except Exception as e:  # noqa: BLE001
+            console.print(f"  [yellow]similarity_search failed: {e}[/yellow]")
+
+    chat = summarizer.build_chat(settings.google_api_key, settings.text_model)
+
+    console.print("  generating per-article summaries…")
+    summaries: list[tuple[str, str]] = []
+    for art in articles:
+        body = summarizer.summarize_article(chat, art)
+        head = art.title or art.source
+        summaries.append((head, body))
+
+    console.print("  generating hot topics…")
+    hot_topics = summarizer.generate_hot_topics(chat, articles, context_excerpts)
+
+    reading_table = summarizer.build_reading_table(articles)
+
+    out_day = output_root / day_iso
+    out_day.mkdir(parents=True, exist_ok=True)
+
+    console.print("  generating podcast script…")
+    summaries_md = "\n\n".join(f"**{t}**\n\n{b}" for t, b in summaries)
+    script_text = script_writer.generate_podcast_script(
+        chat, hot_topics, summaries_md, minutes=minutes
+    )
+    (out_day / "podcast.txt").write_text(script_text, encoding="utf-8")
+
+    audio_relpath: str | None = None
+    if not skip_audio:
+        console.print("  synthesizing audio…")
+        wav_path = out_day / "podcast.wav"
+        tts.synthesize_to_wav(
+            settings.google_api_key,
+            settings.tts_model,
+            settings.tts_voice,
+            script_text,
+            wav_path,
+        )
+        audio_relpath = wav_path.name
+        console.print(f"  audio → [bold]{wav_path}[/bold]")
+
+    report_md = render.render_report(
+        day_iso=day_iso,
+        hot_topics_md=hot_topics,
+        summaries=summaries,
+        reading_table_md=reading_table,
+        audio_relpath=audio_relpath,
+    )
+    report_path = out_day / "report.md"
+    report_path.write_text(report_md, encoding="utf-8")
+    console.print(f"[bold green]✓[/bold green] report → {report_path}")
+
+
+@app.command("list")
+def list_days(
+    input_root: Path = typer.Option(config.DEFAULT_INPUT_ROOT, "--input"),
+) -> None:
+    """List available day folders under the input root."""
+    days = list(loader.iter_days(input_root))
+    if not days:
+        console.print(f"[yellow]no day folders under {input_root}[/yellow]")
+        return
+    for d in days:
+        console.print(d.isoformat())
+
+
+@app.command()
+def info() -> None:
+    """Show resolved configuration."""
+    settings = config.Settings.from_env()
+    console.print(f"text_model       = {settings.text_model}")
+    console.print(f"tts_model        = {settings.tts_model}")
+    console.print(f"tts_voice        = {settings.tts_voice}")
+    console.print(f"embedding_model  = {settings.embedding_model}")
+    console.print(f"input default    = {config.DEFAULT_INPUT_ROOT}")
+    console.print(f"output default   = {config.DEFAULT_OUTPUT_ROOT}")
+    console.print(f"faiss default    = {config.DEFAULT_FAISS_DIR}")
+    console.print(f"api key present  = {bool(settings.google_api_key)}")
+    console.print(f"now              = {datetime.now().isoformat(timespec='seconds')}")
+
+
+if __name__ == "__main__":
+    app()

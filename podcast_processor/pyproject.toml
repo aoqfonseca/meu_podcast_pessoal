@@ -1,0 +1,46 @@
+[project]
+name = "podcast-processor"
+version = "0.1.0"
+description = "Ingests feed articles from leitor_links, vectorizes them into FAISS, and generates a daily Gemini-powered podcast script + audio."
+readme = "README.md"
+authors = [
+    { name = "Andre Fonseca" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "langchain>=0.3,<0.4",
+    "langchain-community>=0.3,<0.4",
+    "langchain-google-genai>=2.0,<3.0",
+    "faiss-cpu>=1.8",
+    "sentence-transformers>=3.0",
+    "langchain-huggingface>=0.1",
+    "google-genai>=0.8",
+    "typer>=0.12",
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+    "rich>=13.7",
+]
+
+[project.scripts]
+podcast-processor = "podcast_processor.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-mock>=3.14",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.14,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "live: hits the real Gemini API (skipped by default)",
+]
