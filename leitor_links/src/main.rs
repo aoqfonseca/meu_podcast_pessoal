@@ -8,7 +8,10 @@ use std::path::{Path, PathBuf};
 use std::time::Duration as StdDuration;
 
 #[derive(Parser, Debug)]
-#[command(name = "leitor_links", about = "Lê feeds RSS/Atom e salva itens recentes em JSON")]
+#[command(
+    name = "leitor_links",
+    about = "Lê feeds RSS/Atom e salva itens recentes em JSON"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -249,11 +252,10 @@ async fn cmd_fetch(
 
     let today = Utc::now().format("%Y-%m-%d").to_string();
     let out_dir = output.join(&today);
-    std::fs::create_dir_all(&out_dir)
-        .with_context(|| format!("criando {}", out_dir.display()))?;
+    std::fs::create_dir_all(&out_dir).with_context(|| format!("criando {}", out_dir.display()))?;
 
     let client = reqwest::Client::builder()
-        .user_agent("leitor_links/0.1 (+https://carta.com)")
+        .user_agent("leitor_links/0.1 (+https://aoqfonseca.com)")
         .timeout(StdDuration::from_secs(30))
         .build()?;
 
@@ -281,7 +283,12 @@ async fn cmd_fetch(
                 let json = serde_json::to_string_pretty(&out)?;
                 std::fs::write(&path, json)
                     .with_context(|| format!("escrevendo {}", path.display()))?;
-                println!("  ✓ {} — {} itens → {}", nome, out.item_count, path.display());
+                println!(
+                    "  ✓ {} — {} itens → {}",
+                    nome,
+                    out.item_count,
+                    path.display()
+                );
                 ok += 1;
                 total_items += out.item_count;
             }
