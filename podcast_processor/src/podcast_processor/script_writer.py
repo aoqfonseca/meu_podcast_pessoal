@@ -11,7 +11,15 @@ def generate_podcast_script(
     hot_topics_md: str,
     article_summaries_md: str,
     minutes: int = 5,
+    context_excerpts: list[str] | None = None,
 ) -> str:
+    """Generate the narration script.
+
+    `context_excerpts` is an optional list of pre-formatted snippets retrieved
+    from the FAISS history (RAG). When present, the writer is told to use them
+    for cross-day continuity — referencing past coverage when relevant, without
+    inventing facts.
+    """
     target_words = minutes * 150
     sys = SystemMessage(
         content=(
@@ -22,15 +30,23 @@ def generate_podcast_script(
             "Estruture: abertura curta com saudação, bloco 'o que está pegando hoje' "
             "(tópicos quentes), bloco de destaques (resumindo 3 a 5 artigos mais "
             "interessantes), e fechamento com tendências a observar. "
+            "Se forem fornecidos trechos de cobertura anterior, use-os para dar "
+            "profundidade e continuidade (ex.: 'vimos há alguns dias que…'), mas "
+            "sem inventar — só use o que aparece nos trechos. "
             f"Mire {target_words} palavras (aproximadamente {minutes} minutos de áudio)."
         )
     )
-    user = HumanMessage(
-        content=(
-            f"### Tópicos quentes do dia\n{hot_topics_md}\n\n"
-            f"### Resumos dos artigos\n{article_summaries_md}\n\n"
-            "Escreva o script agora."
+    parts = [
+        f"### Tópicos quentes do dia\n{hot_topics_md}",
+        f"### Resumos dos artigos\n{article_summaries_md}",
+    ]
+    if context_excerpts:
+        joined = "\n\n".join(context_excerpts)
+        parts.append(
+            "### Cobertura anterior (recuperada do histórico — use para continuidade)\n"
+            + joined
         )
-    )
+    parts.append("Escreva o script agora.")
+    user = HumanMessage(content="\n\n".join(parts))
     resp = chat.invoke([sys, user])
     return str(resp.content).strip()

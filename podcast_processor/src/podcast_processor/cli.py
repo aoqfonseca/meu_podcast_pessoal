@@ -174,10 +174,31 @@ def run(
     out_day = output_root / day_iso
     out_day.mkdir(parents=True, exist_ok=True)
 
+    # RAG for the podcast script — retrieve historical chunks related to today's
+    # hot topics so the narration can reference past coverage and feel continuous.
+    script_context: list[str] = []
+    if store is not None:
+        try:
+            script_hits = store.similarity_search(hot_topics[:2000], k=6)
+            script_context = [
+                f"[{h.metadata.get('source', '?')} · {h.metadata.get('day', '?')}] "
+                f"{h.page_content[:400]}"
+                for h in script_hits
+            ]
+            console.print(
+                f"  retrieved [bold]{len(script_context)}[/bold] historical excerpts for script context"
+            )
+        except Exception as e:  # noqa: BLE001
+            console.print(f"  [yellow]script-context retrieval failed: {e}[/yellow]")
+
     console.print("  generating podcast script…")
     summaries_md = "\n\n".join(f"**{t}**\n\n{b}" for t, b in summaries)
     script_text = script_writer.generate_podcast_script(
-        chat, hot_topics, summaries_md, minutes=minutes
+        chat,
+        hot_topics,
+        summaries_md,
+        minutes=minutes,
+        context_excerpts=script_context or None,
     )
     (out_day / "podcast.txt").write_text(script_text, encoding="utf-8")
 
