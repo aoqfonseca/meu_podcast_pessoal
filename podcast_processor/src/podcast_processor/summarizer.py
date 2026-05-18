@@ -2,10 +2,46 @@
 
 from __future__ import annotations
 
+import hashlib
+from pathlib import Path
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from .loader import Article
+
+
+def article_cache_key(article: Article) -> str:
+    """Stable id for caching per-article summaries.
+
+    Prefers `link` (unique per item); falls back to source+title+text-prefix.
+    """
+    if article.link:
+        seed = f"link::{article.link}"
+    else:
+        seed = f"st::{article.source}::{article.title or ''}::{article.text[:1000]}"
+    return hashlib.sha256(seed.encode("utf-8")).hexdigest()[:32]
+
+
+def cached_summarize_article(
+    chat: ChatGoogleGenerativeAI,
+    article: Article,
+    cache_dir: Path | None,
+    *,
+    refresh: bool = False,
+) -> tuple[str, bool]:
+    """Return (summary, cache_hit). Writes to cache on miss."""
+    if cache_dir is None:
+        return summarize_article(chat, article), False
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_dir / f"{article_cache_key(article)}.txt"
+    if cache_file.exists() and not refresh:
+        return cache_file.read_text(encoding="utf-8"), True
+
+    body = summarize_article(chat, article)
+    cache_file.write_text(body, encoding="utf-8")
+    return body, False
 
 
 def build_chat(api_key: str, model: str, temperature: float = 0.4) -> ChatGoogleGenerativeAI:

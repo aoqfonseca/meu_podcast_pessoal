@@ -37,9 +37,20 @@ def run(
     faiss_dir: Path = typer.Option(
         config.DEFAULT_FAISS_DIR, "--faiss-dir", help="Persistent FAISS index path."
     ),
+    cache_dir: Path = typer.Option(
+        config.DEFAULT_CACHE_DIR,
+        "--cache-dir",
+        help="Persistent cache for per-article LLM summaries.",
+    ),
     skip_audio: bool = typer.Option(False, "--skip-audio", help="Don't call TTS."),
     skip_vectorize: bool = typer.Option(
         False, "--skip-vectorize", help="Skip FAISS ingestion (still loads index for retrieval)."
+    ),
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Disable the per-article summary cache."
+    ),
+    refresh_cache: bool = typer.Option(
+        False, "--refresh-cache", help="Recompute summaries even if cached (overwrites cache)."
     ),
     minutes: int = typer.Option(5, "--minutes", help="Target podcast length in minutes."),
 ) -> None:
@@ -81,10 +92,20 @@ def run(
 
     console.print("  generating per-article summaries…")
     summaries: list[tuple[str, str]] = []
+    cache_target: Path | None = None if no_cache else (cache_dir / "summaries")
+    hits = 0
     for art in articles:
-        body = summarizer.summarize_article(chat, art)
+        body, was_hit = summarizer.cached_summarize_article(
+            chat, art, cache_target, refresh=refresh_cache
+        )
+        hits += int(was_hit)
         head = art.title or art.source
         summaries.append((head, body))
+    if cache_target is not None:
+        console.print(
+            f"  cache: [bold]{hits}[/bold] hit / [bold]{len(articles) - hits}[/bold] new"
+            f" ({cache_target})"
+        )
 
     console.print("  generating hot topics…")
     hot_topics = summarizer.generate_hot_topics(chat, articles, context_excerpts)

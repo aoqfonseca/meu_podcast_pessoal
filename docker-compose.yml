@@ -9,7 +9,9 @@ services:
       # Required: your Gemini API key. Put it in a local .env file at the
       # project root (docker-compose loads it automatically) or export it
       # before running `docker compose run pipeline`.
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY:?GOOGLE_API_KEY is required}
+      # Required when STEPS includes `process` (the LLM pipeline). Optional
+      # when running fetch-only.
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       # Optional overrides — passed through to podcast_processor.
       PODCAST_TEXT_MODEL: ${PODCAST_TEXT_MODEL:-gemini-2.5-flash}
       PODCAST_TTS_MODEL: ${PODCAST_TTS_MODEL:-gemini-2.5-flash-preview-tts}
@@ -21,6 +23,11 @@ services:
       #   PROCESS_ARGS: "--skip-audio"
       FETCH_ARGS: ${FETCH_ARGS:-}
       PROCESS_ARGS: ${PROCESS_ARGS:-}
+      # Which steps to run inside the container. Comma-separated list of
+      # `fetch` and/or `process`. Default runs everything.
+      #   STEPS=process   → skip the Rust fetcher, only run the LLM pipeline
+      #   STEPS=fetch     → only fetch, skip the LLM pipeline
+      STEPS: ${STEPS:-fetch,process}
     volumes:
       # Fetched feed JSONs from leitor_links.
       - ./leitor_links/output:/app/output

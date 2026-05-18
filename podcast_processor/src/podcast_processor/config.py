@@ -16,6 +16,7 @@ REPO_ROOT = PROJECT_ROOT.parent
 DEFAULT_INPUT_ROOT = REPO_ROOT / "leitor_links" / "output"
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "data" / "outputs"
 DEFAULT_FAISS_DIR = PROJECT_ROOT / "data" / "faiss_index"
+DEFAULT_CACHE_DIR = PROJECT_ROOT / "data" / "cache"
 
 
 @dataclass(frozen=True)
