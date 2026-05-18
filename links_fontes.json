@@ -1,0 +1,47 @@
+[
+  {
+    "nome": "arXiv Computer Science",
+    "tags": ["Papers", "Computer Science"],
+    "url": "http://export.arxiv.org/rss/cs"
+  },
+  {
+    "nome": "arXiv Computer Vision",
+    "tags": ["Papers", "Processamento de Imagens", "IA"],
+    "url": "http://export.arxiv.org/rss/cs.CV"
+  },
+  {
+    "nome": "arXiv Artificial Intelligence",
+    "tags": ["Papers", "IA", "LLM", "Agents"],
+    "url": "http://export.arxiv.org/rss/cs.AI"
+  },
+  {
+    "nome": "Hacker News (Top 50)",
+    "tags": ["Tech", "Software Engineering", "Startups"],
+    "url": "https://hnrss.org/frontpage?points=50"
+  },
+  {
+    "nome": "GitHub Engineering Blog",
+    "tags": ["Software Engineering", "Boas Práticas", "IA"],
+    "url": "https://github.blog/category/engineering/feed/"
+  },
+  {
+    "nome": "The Go Blog",
+    "tags": ["Go", "Systems Programming"],
+    "url": "https://go.dev/blog/feed.atom"
+  },
+  {
+    "nome": "The Rust Blog",
+    "tags": ["Rust", "Systems Programming"],
+    "url": "https://blog.rust-lang.org/feed.xml"
+  },
+  {
+    "nome": "Python Insider",
+    "tags": ["Python", "Updates"],
+    "url": "https://feeds.feedburner.com/PythonInsider"
+  },
+  {
+    "nome": "The Lead Dev",
+    "tags": ["Lideranca", "Emocional", "Soft Skills"],
+    "url": "https://leaddev.com/rss.xml"
+  }
+]
