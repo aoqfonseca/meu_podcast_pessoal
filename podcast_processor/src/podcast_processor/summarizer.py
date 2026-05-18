@@ -1,12 +1,17 @@
-"""Gemini calls: per-article summary, hot topics, reading-list table."""
+"""LLM calls: per-article summary, hot topics, reading-list table.
+
+The chat client is provider-agnostic — see `build_chat()` for supported
+backends (Gemini, Groq). Downstream functions accept any LangChain
+BaseChatModel.
+"""
 
 from __future__ import annotations
 
 import hashlib
 from pathlib import Path
 
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from .loader import Article
 
@@ -24,7 +29,7 @@ def article_cache_key(article: Article) -> str:
 
 
 def cached_summarize_article(
-    chat: ChatGoogleGenerativeAI,
+    chat: BaseChatModel,
     article: Article,
     cache_dir: Path | None,
     *,
@@ -44,15 +49,39 @@ def cached_summarize_article(
     return body, False
 
 
-def build_chat(api_key: str, model: str, temperature: float = 0.4) -> ChatGoogleGenerativeAI:
-    return ChatGoogleGenerativeAI(
-        model=model,
-        google_api_key=api_key,
-        temperature=temperature,
-    )
+def build_chat(
+    provider: str,
+    api_key: str,
+    model: str,
+    temperature: float = 0.4,
+) -> BaseChatModel:
+    """Construct a LangChain chat model for the given provider.
+
+    Supported providers:
+    - "gemini": Google Gemini via langchain-google-genai
+    - "groq":   Groq via langchain-groq (free tier; needs GROQ_API_KEY)
+    """
+    provider = provider.lower()
+    if provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+
+        return ChatGoogleGenerativeAI(
+            model=model,
+            google_api_key=api_key,
+            temperature=temperature,
+        )
+    if provider == "groq":
+        from langchain_groq import ChatGroq
+
+        return ChatGroq(
+            model=model,
+            api_key=api_key,
+            temperature=temperature,
+        )
+    raise ValueError(f"unknown llm provider: {provider!r}")
 
 
-def summarize_article(chat: ChatGoogleGenerativeAI, article: Article) -> str:
+def summarize_article(chat: BaseChatModel, article: Article) -> str:
     sys = SystemMessage(
         content=(
             "Você é um curador de tecnologia. Resuma o artigo em 3 a 5 bullets em PT-BR, "
@@ -74,7 +103,7 @@ def summarize_article(chat: ChatGoogleGenerativeAI, article: Article) -> str:
 
 
 def generate_hot_topics(
-    chat: ChatGoogleGenerativeAI, articles: list[Article], context_excerpts: list[str]
+    chat: BaseChatModel, articles: list[Article], context_excerpts: list[str]
 ) -> str:
     sys = SystemMessage(
         content=(

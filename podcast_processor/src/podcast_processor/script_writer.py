@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 
 def generate_podcast_script(
-    chat: ChatGoogleGenerativeAI,
+    chat: BaseChatModel,
     hot_topics_md: str,
     article_summaries_md: str,
     minutes: int = 5,

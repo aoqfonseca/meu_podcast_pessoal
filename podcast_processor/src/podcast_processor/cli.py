@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date, datetime
 from pathlib import Path
 from typing import Optional
@@ -67,6 +68,16 @@ def run(
         "--tts-provider",
         help="TTS backend: 'edge' (free, default) or 'gemini' (paid).",
     ),
+    llm_provider: Optional[str] = typer.Option(
+        None,
+        "--llm-provider",
+        help="LLM backend: 'gemini' (default) or 'groq' (free tier).",
+    ),
+    llm_model: Optional[str] = typer.Option(
+        None,
+        "--llm-model",
+        help="Override the model name for the chosen LLM provider.",
+    ),
 ) -> None:
     """Build the daily podcast for a given day folder."""
     settings = config.Settings.from_env()
@@ -102,7 +113,17 @@ def run(
         except Exception as e:  # noqa: BLE001
             console.print(f"  [yellow]similarity_search failed: {e}[/yellow]")
 
-    chat = summarizer.build_chat(settings.require_google_key(), settings.text_model)
+    if llm_provider:
+        settings = replace(settings, llm_provider=llm_provider)
+    if llm_model:
+        # Override the model name for whichever provider is active.
+        if settings.llm_provider.lower() == "groq":
+            settings = replace(settings, groq_model=llm_model)
+        else:
+            settings = replace(settings, text_model=llm_model)
+    llm_prov, llm_key, llm_mdl = settings.resolve_llm()
+    console.print(f"  LLM: [bold]{llm_prov}[/bold] · model=[dim]{llm_mdl}[/dim]")
+    chat = summarizer.build_chat(llm_prov, llm_key, llm_mdl)
 
     console.print(f"  generating per-article summaries for [bold]{len(articles)}[/bold] articles…")
     summaries: list[tuple[str, str]] = []
@@ -213,7 +234,9 @@ def list_days(
 def info() -> None:
     """Show resolved configuration."""
     settings = config.Settings.from_env()
+    console.print(f"llm_provider     = {settings.llm_provider}")
     console.print(f"text_model       = {settings.text_model}")
+    console.print(f"groq_model       = {settings.groq_model}")
     console.print(f"tts_provider     = {settings.tts_provider}")
     console.print(f"tts_model        = {settings.tts_model}")
     console.print(f"tts_voice        = {settings.tts_voice}")
@@ -222,7 +245,8 @@ def info() -> None:
     console.print(f"input default    = {config.DEFAULT_INPUT_ROOT}")
     console.print(f"output default   = {config.DEFAULT_OUTPUT_ROOT}")
     console.print(f"faiss default    = {config.DEFAULT_FAISS_DIR}")
-    console.print(f"api key present  = {bool(settings.google_api_key)}")
+    console.print(f"google_key set   = {bool(settings.google_api_key)}")
+    console.print(f"groq_key set     = {bool(settings.groq_api_key)}")
     console.print(f"now              = {datetime.now().isoformat(timespec='seconds')}")
 
 

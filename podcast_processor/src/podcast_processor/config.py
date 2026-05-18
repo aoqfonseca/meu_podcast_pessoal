@@ -22,7 +22,10 @@ DEFAULT_CACHE_DIR = PROJECT_ROOT / "data" / "cache"
 @dataclass(frozen=True)
 class Settings:
     google_api_key: str
+    groq_api_key: str
+    llm_provider: str = "gemini"  # "gemini" or "groq"
     text_model: str = "gemini-2.5-flash-lite"
+    groq_model: str = "llama-3.3-70b-versatile"
     tts_provider: str = "edge"  # "edge" (free) or "gemini"
     tts_model: str = "gemini-2.5-flash-preview-tts"
     tts_voice: str = "Kore"
@@ -34,12 +37,14 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
-        key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or ""
-        # Google key is only required when using Gemini TTS or the text model.
-        # For Edge TTS users running text gen elsewhere, allow empty.
+        google_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or ""
+        groq_key = os.getenv("GROQ_API_KEY") or ""
         return cls(
-            google_api_key=key,
+            google_api_key=google_key,
+            groq_api_key=groq_key,
+            llm_provider=os.getenv("PODCAST_LLM_PROVIDER", "gemini"),
             text_model=os.getenv("PODCAST_TEXT_MODEL", "gemini-2.5-flash-lite"),
+            groq_model=os.getenv("PODCAST_GROQ_MODEL", "llama-3.3-70b-versatile"),
             tts_provider=os.getenv("PODCAST_TTS_PROVIDER", "edge"),
             tts_model=os.getenv("PODCAST_TTS_MODEL", "gemini-2.5-flash-preview-tts"),
             tts_voice=os.getenv("PODCAST_TTS_VOICE", "Kore"),
@@ -56,3 +61,19 @@ class Settings:
                 "GOOGLE_API_KEY (or GEMINI_API_KEY) not set. Put it in podcast_processor/.env"
             )
         return self.google_api_key
+
+    def require_groq_key(self) -> str:
+        if not self.groq_api_key:
+            raise RuntimeError(
+                "GROQ_API_KEY not set. Get a free key at https://console.groq.com and put it in podcast_processor/.env"
+            )
+        return self.groq_api_key
+
+    def resolve_llm(self) -> tuple[str, str, str]:
+        """Return (provider, api_key, model) for the configured LLM."""
+        provider = self.llm_provider.lower()
+        if provider == "gemini":
+            return provider, self.require_google_key(), self.text_model
+        if provider == "groq":
+            return provider, self.require_groq_key(), self.groq_model
+        raise RuntimeError(f"unknown llm provider: {self.llm_provider!r}")
