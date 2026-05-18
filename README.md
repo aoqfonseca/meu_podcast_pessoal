@@ -90,6 +90,53 @@ uv run podcast-processor run --skip-vectorize
 
 See the per-component READMEs for the full list of options.
 
+## Docker (full pipeline in one container)
+
+A `Dockerfile` + `docker-compose.yml` at the repo root builds both components and runs the whole pipeline end-to-end. This is the easiest way to schedule a daily run (e.g. via `cron` or a CI job).
+
+### Build & run
+
+```bash
+# Put your key in a local .env (gitignored)
+echo 'GOOGLE_API_KEY=your-key-here' > .env
+
+# Build the image (multi-stage: Rust → Python venv → slim runtime)
+docker compose build
+
+# Run the full pipeline once
+docker compose run --rm pipeline
+```
+
+Outputs land in the same host folders the local workflow uses:
+
+- `leitor_links/output/YYYY-MM-DD/*.json` — fetched feeds
+- `podcast_processor/data/outputs/YYYY-MM-DD/` — `report.md`, `podcast.txt`, `podcast.wav`
+- `podcast_processor/data/faiss_index/` — persistent FAISS index
+- `podcast_processor/data/hf-cache/` — Hugging Face model cache (downloaded on first run)
+
+### Configuration via env
+
+All flags can be tuned without rebuilding:
+
+```bash
+# Only IA / Rust feeds, last 7 days, skip audio
+FETCH_ARGS="--tags IA,Rust --since-days 7" \
+PROCESS_ARGS="--skip-audio" \
+docker compose run --rm pipeline
+
+# Override models / voice
+PODCAST_TTS_VOICE=Aoede docker compose run --rm pipeline
+```
+
+The compose file documents every environment variable it accepts.
+
+### Image notes
+
+- Base: `python:3.13-slim-bookworm` (Debian slim — required because `torch`, `faiss-cpu`, and `sentence-transformers` only publish glibc wheels).
+- Torch is pulled from the CPU-only PyTorch index, which keeps the final image ~500 MB lighter than the default CUDA build.
+- Runs as a non-root user.
+- The Hugging Face embedding model (~120 MB) is downloaded into the mounted `data/hf-cache` volume on first run — the image itself does not ship it.
+
 ## Editing the source list
 
 `links_fontes.json` is the single source of truth for which feeds get pulled. Each entry is:

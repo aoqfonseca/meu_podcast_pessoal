@@ -1,0 +1,30 @@
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: meu-podcast-pessoal:latest
+    container_name: meu-podcast-pessoal
+    environment:
+      # Required: your Gemini API key. Put it in a local .env file at the
+      # project root (docker-compose loads it automatically) or export it
+      # before running `docker compose run pipeline`.
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:?GOOGLE_API_KEY is required}
+      # Optional overrides — passed through to podcast_processor.
+      PODCAST_TEXT_MODEL: ${PODCAST_TEXT_MODEL:-gemini-2.5-flash}
+      PODCAST_TTS_MODEL: ${PODCAST_TTS_MODEL:-gemini-2.5-flash-preview-tts}
+      PODCAST_TTS_VOICE: ${PODCAST_TTS_VOICE:-Kore}
+      PODCAST_EMBEDDING_MODEL: ${PODCAST_EMBEDDING_MODEL:-sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2}
+      # Optional: extra flags forwarded to each CLI by run-pipeline.sh.
+      # Examples:
+      #   FETCH_ARGS: "--tags IA,Rust --since-days 7"
+      #   PROCESS_ARGS: "--skip-audio"
+      FETCH_ARGS: ${FETCH_ARGS:-}
+      PROCESS_ARGS: ${PROCESS_ARGS:-}
+    volumes:
+      # Fetched feed JSONs from leitor_links.
+      - ./leitor_links/output:/app/output
+      # FAISS index + Hugging Face model cache + generated podcast outputs.
+      - ./podcast_processor/data:/app/data
+      # Mount the source list read-only so edits on the host take effect immediately.
+      - ./links_fontes.json:/app/links_fontes.json:ro
