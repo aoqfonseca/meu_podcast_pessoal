@@ -1,12 +1,19 @@
-"""Gemini 2.5 native TTS — converts a podcast script into an audio file."""
+"""TTS backends — convert a podcast script into an audio file.
+
+Two providers are supported:
+- `gemini`: Gemini 2.5 native TTS (paid). Writes PCM-to-WAV.
+- `edge`:   Microsoft Edge TTS (free, no API key). Writes MP3 directly.
+"""
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import struct
 import wave
 from pathlib import Path
 
+import edge_tts
 from google import genai
 from google.genai import types
 
@@ -81,3 +88,26 @@ def synthesize_to_wav(
 def _silence_pcm(seconds: float = 0.1, sample_rate: int = 24000) -> bytes:
     n = int(seconds * sample_rate)
     return struct.pack("<" + "h" * n, *([0] * n))
+
+
+async def _edge_stream_to_mp3(text: str, voice: str, out_path: Path) -> None:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    communicate = edge_tts.Communicate(text, voice=voice)
+    with open(out_path, "wb") as fp:
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                fp.write(chunk["data"])
+
+
+def synthesize_edge_to_mp3(
+    voice: str,
+    script: str,
+    out_path: Path,
+) -> Path:
+    """Synthesize `script` with Microsoft Edge TTS, writing an MP3.
+
+    Voice names follow Edge format, e.g. `pt-BR-FranciscaNeural`,
+    `pt-BR-AntonioNeural`, `pt-BR-ThalitaMultilingualNeural`. No API key needed.
+    """
+    asyncio.run(_edge_stream_to_mp3(script, voice, out_path))
+    return out_path

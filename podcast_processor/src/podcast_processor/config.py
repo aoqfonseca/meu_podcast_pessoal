@@ -23,8 +23,10 @@ DEFAULT_CACHE_DIR = PROJECT_ROOT / "data" / "cache"
 class Settings:
     google_api_key: str
     text_model: str = "gemini-2.5-flash-lite"
+    tts_provider: str = "edge"  # "edge" (free) or "gemini"
     tts_model: str = "gemini-2.5-flash-preview-tts"
     tts_voice: str = "Kore"
+    edge_tts_voice: str = "pt-BR-FranciscaNeural"
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     chunk_size: int = 1000
     chunk_overlap: int = 150
@@ -32,18 +34,25 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
-        key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        if not key:
-            raise RuntimeError(
-                "GOOGLE_API_KEY (or GEMINI_API_KEY) not set. Put it in podcast_processor/.env"
-            )
+        key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or ""
+        # Google key is only required when using Gemini TTS or the text model.
+        # For Edge TTS users running text gen elsewhere, allow empty.
         return cls(
             google_api_key=key,
             text_model=os.getenv("PODCAST_TEXT_MODEL", "gemini-2.5-flash-lite"),
+            tts_provider=os.getenv("PODCAST_TTS_PROVIDER", "edge"),
             tts_model=os.getenv("PODCAST_TTS_MODEL", "gemini-2.5-flash-preview-tts"),
             tts_voice=os.getenv("PODCAST_TTS_VOICE", "Kore"),
+            edge_tts_voice=os.getenv("PODCAST_EDGE_TTS_VOICE", "pt-BR-FranciscaNeural"),
             embedding_model=os.getenv(
                 "PODCAST_EMBEDDING_MODEL",
                 "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
             ),
         )
+
+    def require_google_key(self) -> str:
+        if not self.google_api_key:
+            raise RuntimeError(
+                "GOOGLE_API_KEY (or GEMINI_API_KEY) not set. Put it in podcast_processor/.env"
+            )
+        return self.google_api_key

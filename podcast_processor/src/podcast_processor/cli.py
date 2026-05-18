@@ -62,6 +62,11 @@ def run(
         False, "--refresh-cache", help="Recompute summaries even if cached (overwrites cache)."
     ),
     minutes: int = typer.Option(5, "--minutes", help="Target podcast length in minutes."),
+    tts_provider: Optional[str] = typer.Option(
+        None,
+        "--tts-provider",
+        help="TTS backend: 'edge' (free, default) or 'gemini' (paid).",
+    ),
 ) -> None:
     """Build the daily podcast for a given day folder."""
     settings = config.Settings.from_env()
@@ -97,7 +102,7 @@ def run(
         except Exception as e:  # noqa: BLE001
             console.print(f"  [yellow]similarity_search failed: {e}[/yellow]")
 
-    chat = summarizer.build_chat(settings.google_api_key, settings.text_model)
+    chat = summarizer.build_chat(settings.require_google_key(), settings.text_model)
 
     console.print(f"  generating per-article summaries for [bold]{len(articles)}[/bold] articles…")
     summaries: list[tuple[str, str]] = []
@@ -157,17 +162,27 @@ def run(
 
     audio_relpath: str | None = None
     if not skip_audio:
-        console.print("  synthesizing audio…")
-        wav_path = out_day / "podcast.wav"
-        tts.synthesize_to_wav(
-            settings.google_api_key,
-            settings.tts_model,
-            settings.tts_voice,
-            script_text,
-            wav_path,
-        )
-        audio_relpath = wav_path.name
-        console.print(f"  audio → [bold]{wav_path}[/bold]")
+        provider = (tts_provider or settings.tts_provider).lower()
+        if provider == "edge":
+            console.print(f"  synthesizing audio via Edge TTS ({settings.edge_tts_voice})…")
+            mp3_path = out_day / "podcast.mp3"
+            tts.synthesize_edge_to_mp3(settings.edge_tts_voice, script_text, mp3_path)
+            audio_relpath = mp3_path.name
+            console.print(f"  audio → [bold]{mp3_path}[/bold]")
+        elif provider == "gemini":
+            console.print(f"  synthesizing audio via Gemini TTS ({settings.tts_voice})…")
+            wav_path = out_day / "podcast.wav"
+            tts.synthesize_to_wav(
+                settings.require_google_key(),
+                settings.tts_model,
+                settings.tts_voice,
+                script_text,
+                wav_path,
+            )
+            audio_relpath = wav_path.name
+            console.print(f"  audio → [bold]{wav_path}[/bold]")
+        else:
+            raise typer.BadParameter(f"unknown tts provider: {provider!r}")
 
     report_md = render.render_report(
         day_iso=day_iso,
@@ -199,8 +214,10 @@ def info() -> None:
     """Show resolved configuration."""
     settings = config.Settings.from_env()
     console.print(f"text_model       = {settings.text_model}")
+    console.print(f"tts_provider     = {settings.tts_provider}")
     console.print(f"tts_model        = {settings.tts_model}")
     console.print(f"tts_voice        = {settings.tts_voice}")
+    console.print(f"edge_tts_voice   = {settings.edge_tts_voice}")
     console.print(f"embedding_model  = {settings.embedding_model}")
     console.print(f"input default    = {config.DEFAULT_INPUT_ROOT}")
     console.print(f"output default   = {config.DEFAULT_OUTPUT_ROOT}")
