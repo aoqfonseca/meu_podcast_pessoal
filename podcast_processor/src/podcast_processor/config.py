@@ -21,7 +21,7 @@ DEFAULT_FAISS_DIR = PROJECT_ROOT / "data" / "faiss_index"
 @dataclass(frozen=True)
 class Settings:
     google_api_key: str
-    text_model: str = "gemini-2.5-flash"
+    text_model: str = "gemini-2.5-flash-lite"
     tts_model: str = "gemini-2.5-flash-preview-tts"
     tts_voice: str = "Kore"
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
@@ -39,7 +39,7 @@ class Settings:
             )
         return cls(
             google_api_key=key,
-            text_model=os.getenv("PODCAST_TEXT_MODEL", "gemini-2.5-flash"),
+            text_model=os.getenv("PODCAST_TEXT_MODEL", "gemini-2.5-flash-lite"),
             tts_model=os.getenv("PODCAST_TTS_MODEL", "gemini-2.5-flash-preview-tts"),
             tts_voice=os.getenv("PODCAST_TTS_VOICE", "Kore"),
             embedding_model=os.getenv(
