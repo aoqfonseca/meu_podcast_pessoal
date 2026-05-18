@@ -8,6 +8,15 @@ from typing import Optional
 
 import typer
 from rich.console import Console
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
 
 from . import config, loader, render, script_writer, summarizer, tts, vectorstore
 
@@ -90,21 +99,45 @@ def run(
 
     chat = summarizer.build_chat(settings.google_api_key, settings.text_model)
 
-    console.print("  generating per-article summaries…")
+    console.print(f"  generating per-article summaries for [bold]{len(articles)}[/bold] articles…")
     summaries: list[tuple[str, str]] = []
     cache_target: Path | None = None if no_cache else (cache_dir / "summaries")
     hits = 0
-    for art in articles:
-        body, was_hit = summarizer.cached_summarize_article(
-            chat, art, cache_target, refresh=refresh_cache
+    misses = 0
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TextColumn("•"),
+        TextColumn("[green]{task.fields[hits]} cached[/green] / [yellow]{task.fields[misses]} new[/yellow]"),
+        TextColumn("•"),
+        TimeElapsedColumn(),
+        TextColumn("ETA"),
+        TimeRemainingColumn(),
+        console=console,
+        transient=False,
+    ) as progress:
+        task = progress.add_task(
+            "summaries", total=len(articles), hits=0, misses=0
         )
-        hits += int(was_hit)
-        head = art.title or art.source
-        summaries.append((head, body))
+        for art in articles:
+            head = art.title or art.source
+            short = (head[:60] + "…") if len(head) > 60 else head
+            progress.update(task, description=f"[cyan]{short}")
+            body, was_hit = summarizer.cached_summarize_article(
+                chat, art, cache_target, refresh=refresh_cache
+            )
+            if was_hit:
+                hits += 1
+            else:
+                misses += 1
+            summaries.append((head, body))
+            progress.update(task, advance=1, hits=hits, misses=misses)
     if cache_target is not None:
         console.print(
-            f"  cache: [bold]{hits}[/bold] hit / [bold]{len(articles) - hits}[/bold] new"
-            f" ({cache_target})"
+            f"  cache: [bold green]{hits}[/bold green] hit / "
+            f"[bold yellow]{misses}[/bold yellow] new ({cache_target})"
         )
 
     console.print("  generating hot topics…")
