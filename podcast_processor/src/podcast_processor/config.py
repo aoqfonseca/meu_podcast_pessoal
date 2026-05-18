@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REPO_ROOT = PROJECT_ROOT.parent
 
 DEFAULT_INPUT_ROOT = REPO_ROOT / "leitor_links" / "output"

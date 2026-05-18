@@ -1,0 +1,59 @@
+site_name: Podcast Diário
+site_description: Resumo diário gerado por IA das fontes acompanhadas em leitor_links.
+site_url: https://aoqfonseca.github.io/meu_podcast_pessoal/
+repo_url: https://github.com/aoqfonseca/meu_podcast_pessoal
+edit_uri: ""
+
+docs_dir: docs
+site_dir: ../site
+
+theme:
+  name: material
+  language: pt
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Modo escuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Modo claro
+
+plugins:
+  - search
+  - blog:
+      blog_dir: blog
+      post_dir: "{blog}/posts"
+      post_date_format: long
+      post_url_date_format: yyyy/MM/dd
+      archive: true
+      categories: false
+      pagination_per_page: 10
+
+nav:
+  - Início: index.md
+  - Episódios: blog/index.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight

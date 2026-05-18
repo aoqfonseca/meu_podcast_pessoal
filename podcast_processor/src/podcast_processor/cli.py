@@ -18,7 +18,7 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
-from . import config, loader, render, script_writer, summarizer, tts, vectorstore
+from . import config, loader, publish, render, script_writer, summarizer, tts, vectorstore
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 console = Console()
@@ -207,6 +207,35 @@ def info() -> None:
     console.print(f"faiss default    = {config.DEFAULT_FAISS_DIR}")
     console.print(f"api key present  = {bool(settings.google_api_key)}")
     console.print(f"now              = {datetime.now().isoformat(timespec='seconds')}")
+
+
+@app.command("build-site")
+def build_site(
+    output_root: Path = typer.Option(
+        config.DEFAULT_OUTPUT_ROOT, "--output", help="Root with YYYY-MM-DD output folders."
+    ),
+    build: bool = typer.Option(
+        True, "--build/--no-build", help="Run `mkdocs build` after syncing posts."
+    ),
+    strict: bool = typer.Option(False, "--strict", help="Fail on mkdocs warnings."),
+    skip_audio: bool = typer.Option(
+        False, "--skip-audio", help="Don't copy MP3 files into the site."
+    ),
+) -> None:
+    """Generate blog posts from data/outputs and (optionally) build the static site."""
+    written = publish.sync(output_root, copy_audio=not skip_audio)
+    if not written:
+        console.print(f"[yellow]no day outputs found under {output_root}[/yellow]")
+        return
+    console.print(f"  wrote [bold]{len(written)}[/bold] post(s) to {publish.POSTS_DIR}")
+    for p in written:
+        console.print(f"    • {p.name}")
+    if build:
+        console.print("  running mkdocs build…")
+        site_dir = publish.build(strict=strict)
+        console.print(f"[bold green]✓[/bold green] site → {site_dir}")
+    else:
+        console.print("  [dim]skipped mkdocs build (use --build to enable)[/dim]")
 
 
 if __name__ == "__main__":

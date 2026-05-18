@@ -4,4 +4,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .env
-data/
+data/*
+!data/outputs/
+data/outputs/**/*.wav
+site/
+site_src/docs/blog/posts/*.md
+!site_src/docs/blog/posts/.gitkeep
+site_src/docs/audio/

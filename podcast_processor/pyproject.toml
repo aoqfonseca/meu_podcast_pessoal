@@ -21,6 +21,12 @@ dependencies = [
     "rich>=13.7",
 ]
 
+[project.optional-dependencies]
+site = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+]
+
 [project.scripts]
 podcast-processor = "podcast_processor.cli:app"
 
