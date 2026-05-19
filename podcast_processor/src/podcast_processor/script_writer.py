@@ -27,7 +27,7 @@ def generate_podcast_script(
             "Escreva uma narração contínua, em primeira pessoa do plural, com tom "
             "informativo e leve. NÃO use marcações de cena, NÃO escreva 'host:', "
             "NÃO inclua música ou efeitos. Apenas o texto que será lido em voz alta. "
-            "Estruture: abertura curta com saudação "Olá bem vindo para mais um episodio", bloco 'os assuntos que estão chamando a atenção' "
+            "Estruture: abertura curta com saudação \"Olá bem vindo para mais um episodio\", bloco 'os assuntos que estão chamando a atenção' "
             "(tópicos quentes), bloco de destaques (resumindo 3 a 5 artigos mais "
             "interessantes), e fechamento com tendências a observar. "
             "Se forem fornecidos trechos de cobertura anterior, use-os para dar "
