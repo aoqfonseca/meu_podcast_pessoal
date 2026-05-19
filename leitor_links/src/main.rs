@@ -38,11 +38,11 @@ enum Command {
         match_all: bool,
 
         /// Pegar apenas itens publicados nos últimos N dias
-        #[arg(long, default_value_t = 3)]
+        #[arg(long, default_value_t = 1)]
         since_days: i64,
 
         /// Máximo de itens por fonte
-        #[arg(long, default_value_t = 20)]
+        #[arg(long, default_value_t = 10)]
         max_items: usize,
 
         /// Número de fontes processadas em paralelo
