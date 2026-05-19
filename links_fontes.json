@@ -45,48 +45,8 @@
     "url": "https://leaddev.com/rss.xml"
   },
   {
-    "nome": "Uber Engineering Blog",
-    "tags": ["Software Engineering", "Distributed Systems", "Boas Práticas"],
-    "url": "https://www.uber.com/en-US/blog/engineering/rss/"
-  },
-  {
-    "nome": "Netflix Tech Blog",
-    "tags": ["Distributed Systems", "Streaming", "Boas Práticas"],
-    "url": "https://netflixtechblog.com/feed"
-  },
-  {
-    "nome": "Meta Engineering",
-    "tags": ["Software Engineering", "IA", "Distributed Systems"],
-    "url": "https://engineering.fb.com/feed/"
-  },
-  {
-    "nome": "Cloudflare Blog",
-    "tags": ["Infra", "Networking", "Security"],
-    "url": "https://blog.cloudflare.com/rss/"
-  },
-  {
-    "nome": "Spotify Engineering",
-    "tags": ["Software Engineering", "Data", "Boas Práticas"],
-    "url": "https://engineering.atspotify.com/feed/"
-  },
-  {
-    "nome": "Stripe Engineering",
-    "tags": ["Software Engineering", "Fintech", "Boas Práticas"],
-    "url": "https://stripe.com/blog/engineering.rss"
-  },
-  {
-    "nome": "LinkedIn Engineering",
-    "tags": ["Software Engineering", "Distributed Systems"],
-    "url": "https://engineering.linkedin.com/blog.rss"
-  },
-  {
-    "nome": "Shopify Engineering",
-    "tags": ["Software Engineering", "Boas Práticas"],
-    "url": "https://shopify.engineering/blog.atom"
-  },
-  {
     "nome": "DoorDash Engineering",
     "tags": ["Software Engineering", "Distributed Systems"],
-    "url": "https://doordash.engineering/blog/feed/"
+    "url": "https://careersatdoordash.com/feed/"
   }
 ]
