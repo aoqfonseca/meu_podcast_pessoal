@@ -6,25 +6,34 @@ services:
     image: meu-podcast-pessoal:latest
     container_name: meu-podcast-pessoal
     environment:
-      # Required: your Gemini API key. Put it in a local .env file at the
-      # project root (docker-compose loads it automatically) or export it
-      # before running `docker compose run pipeline`.
-      # Required when STEPS includes `process` (the LLM pipeline). Optional
-      # when running fetch-only.
+      # --- API keys (set in .env at project root or export before running) ---
+      # Required when PODCAST_LLM_PROVIDER=gemini (default).
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
-      # Optional overrides — passed through to podcast_processor.
-      PODCAST_TEXT_MODEL: ${PODCAST_TEXT_MODEL:-gemini-2.5-flash}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # Required when PODCAST_LLM_PROVIDER=groq.
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+
+      # --- LLM provider ---
+      PODCAST_LLM_PROVIDER: ${PODCAST_LLM_PROVIDER:-gemini}
+      PODCAST_TEXT_MODEL: ${PODCAST_TEXT_MODEL:-gemini-2.5-flash-lite}
+      PODCAST_GROQ_MODEL: ${PODCAST_GROQ_MODEL:-llama-3.3-70b-versatile}
+
+      # --- TTS provider ---
+      PODCAST_TTS_PROVIDER: ${PODCAST_TTS_PROVIDER:-edge}
       PODCAST_TTS_MODEL: ${PODCAST_TTS_MODEL:-gemini-2.5-flash-preview-tts}
       PODCAST_TTS_VOICE: ${PODCAST_TTS_VOICE:-Kore}
+      PODCAST_EDGE_TTS_VOICE: ${PODCAST_EDGE_TTS_VOICE:-pt-BR-FranciscaNeural}
+
+      # --- Embeddings ---
       PODCAST_EMBEDDING_MODEL: ${PODCAST_EMBEDDING_MODEL:-sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2}
-      # Optional: extra flags forwarded to each CLI by run-pipeline.sh.
-      # Examples:
+
+      # --- Pipeline control ---
+      # Extra flags forwarded to each CLI. Examples:
       #   FETCH_ARGS: "--tags IA,Rust --since-days 7"
-      #   PROCESS_ARGS: "--skip-audio"
+      #   PROCESS_ARGS: "--skip-audio --llm-provider groq"
       FETCH_ARGS: ${FETCH_ARGS:-}
       PROCESS_ARGS: ${PROCESS_ARGS:-}
-      # Which steps to run inside the container. Comma-separated list of
-      # `fetch` and/or `process`. Default runs everything.
+      # Comma-separated steps to run: fetch,process (default: both).
       #   STEPS=process   → skip the Rust fetcher, only run the LLM pipeline
       #   STEPS=fetch     → only fetch, skip the LLM pipeline
       STEPS: ${STEPS:-fetch,process}
