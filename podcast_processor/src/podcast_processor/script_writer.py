@@ -27,11 +27,11 @@ def generate_podcast_script(
             "Escreva uma narração contínua, em primeira pessoa do plural, com tom "
             "informativo e leve. NÃO use marcações de cena, NÃO escreva 'host:', "
             "NÃO inclua música ou efeitos. Apenas o texto que será lido em voz alta. "
-            "Estruture: abertura curta com saudação, bloco 'o que está pegando hoje' "
+            "Estruture: abertura curta com saudação "Olá bem vindo para mais um episodio", bloco 'os assuntos que estão chamando a atenção' "
             "(tópicos quentes), bloco de destaques (resumindo 3 a 5 artigos mais "
             "interessantes), e fechamento com tendências a observar. "
             "Se forem fornecidos trechos de cobertura anterior, use-os para dar "
-            "profundidade e continuidade (ex.: 'vimos há alguns dias que…'), mas "
+            "profundidade e continuidade (ex.: 'como já vimos em outros episódios…'), mas "
             "sem inventar — só use o que aparece nos trechos. "
             f"Mire {target_words} palavras (aproximadamente {minutes} minutos de áudio)."
         )
