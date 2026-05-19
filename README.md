@@ -9,9 +9,9 @@ RSS feeds  ──►  leitor_links (Rust)  ──►  JSON per source
                                        podcast_processor (Python)
                                               │
                                               ├─► FAISS index (persistent)
-                                              ├─► report.md  (hot topics + summaries + reading list)
+                                              ├─► report.md   (hot topics + summaries + reading list)
                                               ├─► podcast.txt (script)
-                                              └─► podcast.wav (Gemini TTS)
+                                              └─► podcast.mp3 / podcast.wav  (Edge TTS or Gemini TTS)
 ```
 
 ## Components
@@ -35,7 +35,9 @@ You need both components installed once; afterwards a daily run is two commands.
 
 - [Rust](https://rustup.rs/) (1.85+, edition 2024)
 - [`uv`](https://docs.astral.sh/uv/) (Python 3.13 will be installed automatically)
-- A Google Gemini API key
+- An API key for your chosen LLM provider:
+  - **Gemini** (default) — [Google AI Studio](https://aistudio.google.com/app/apikey) → `GOOGLE_API_KEY`
+  - **Groq** (free tier) — [console.groq.com](https://console.groq.com) → `GROQ_API_KEY`
 
 ### One-time setup
 
@@ -45,10 +47,12 @@ cd leitor_links
 cargo build --release
 cd ..
 
-# 2. Install Python dependencies
-cd podcast_processor
+# 2. Create your .env from the template and fill in your API key(s)
 cp .env.example .env
-# put your GOOGLE_API_KEY in .env
+# edit .env — at minimum set GOOGLE_API_KEY or GROQ_API_KEY
+
+# 3. Install Python dependencies
+cd podcast_processor
 uv sync
 cd ..
 ```
@@ -88,7 +92,7 @@ The outputs are:
 podcast_processor/data/outputs/YYYY-MM-DD/
 ├── report.md       # hot topics, reading list, per-article summaries
 ├── podcast.txt     # narration script
-└── podcast.wav     # generated audio
+└── podcast.mp3     # audio (Edge TTS) — or podcast.wav when using Gemini TTS
 ```
 
 Useful flags:
@@ -113,8 +117,8 @@ A `Dockerfile` + `docker-compose.yml` at the repo root builds both components an
 ### Build & run
 
 ```bash
-# Put your key in a local .env (gitignored)
-echo 'GOOGLE_API_KEY=your-key-here' > .env
+# Copy the template and fill in your API key(s) (file is gitignored)
+cp .env.example .env
 
 # Build the image (multi-stage: Rust → Python venv → slim runtime)
 docker compose build
@@ -132,19 +136,43 @@ Outputs land in the same host folders the local workflow uses:
 
 ### Configuration via env
 
-All flags can be tuned without rebuilding:
+All flags can be tuned without rebuilding. Set them in your root `.env` file or export them before running:
 
 ```bash
+# Use Groq instead of Gemini for LLM (free tier)
+PODCAST_LLM_PROVIDER=groq \
+GROQ_API_KEY=gsk_... \
+docker compose run --rm pipeline
+
 # Only IA / Rust feeds, last 7 days, skip audio
 FETCH_ARGS="--tags IA,Rust --since-days 7" \
 PROCESS_ARGS="--skip-audio" \
 docker compose run --rm pipeline
 
-# Override models / voice
+# Override TTS voice
 PODCAST_TTS_VOICE=Aoede docker compose run --rm pipeline
 ```
 
-The compose file documents every environment variable it accepts.
+**Full variable reference:**
+
+| Variable | Default | Description |
+|---|---|---|
+| `GOOGLE_API_KEY` | — | Gemini API key. Required when `PODCAST_LLM_PROVIDER=gemini`. |
+| `GEMINI_API_KEY` | — | Alias for `GOOGLE_API_KEY` — either one is accepted. |
+| `GROQ_API_KEY` | — | Groq API key. Required when `PODCAST_LLM_PROVIDER=groq`. |
+| `PODCAST_LLM_PROVIDER` | `gemini` | LLM backend: `gemini` or `groq`. |
+| `PODCAST_TEXT_MODEL` | `gemini-2.5-flash-lite` | Gemini model for text generation. |
+| `PODCAST_GROQ_MODEL` | `llama-3.3-70b-versatile` | Groq model (used when provider is `groq`). |
+| `PODCAST_TTS_PROVIDER` | `edge` | TTS backend: `edge` (free, MP3) or `gemini` (paid, WAV). |
+| `PODCAST_EDGE_TTS_VOICE` | `pt-BR-FranciscaNeural` | Voice name for Edge TTS. |
+| `PODCAST_TTS_MODEL` | `gemini-2.5-flash-preview-tts` | Gemini TTS model. |
+| `PODCAST_TTS_VOICE` | `Kore` | Voice name for Gemini TTS. |
+| `PODCAST_EMBEDDING_MODEL` | `paraphrase-multilingual-MiniLM-L12-v2` | Sentence-transformers model for FAISS. |
+| `FETCH_ARGS` | — | Extra flags forwarded to `leitor_links fetch`. |
+| `PROCESS_ARGS` | — | Extra flags forwarded to `podcast-processor run`. |
+| `STEPS` | `fetch,process` | Comma-separated steps to run (`fetch`, `process`, or both). |
+
+See `.env.example` at the repo root for a ready-to-copy template.
 
 ### Image notes
 
