@@ -28,8 +28,10 @@ class Settings:
     groq_model: str = "llama-3.3-70b-versatile"
     tts_provider: str = "edge"  # "edge" (free) or "gemini"
     tts_model: str = "gemini-2.5-flash-preview-tts"
-    tts_voice: str = "Kore"
-    edge_tts_voice: str = "pt-BR-FranciscaNeural"
+    tts_voice: str = "Kore"          # Gemini voice for Marina (first speaker)
+    tts_voice_2: str = "Puck"        # Gemini voice for André (second speaker)
+    edge_tts_voice: str = "pt-BR-FranciscaNeural"   # Edge voice for Marina
+    edge_tts_voice_2: str = "pt-BR-AntonioNeural"   # Edge voice for André
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     chunk_size: int = 1000
     chunk_overlap: int = 150
@@ -48,7 +50,9 @@ class Settings:
             tts_provider=os.getenv("PODCAST_TTS_PROVIDER", "edge"),
             tts_model=os.getenv("PODCAST_TTS_MODEL", "gemini-2.5-flash-preview-tts"),
             tts_voice=os.getenv("PODCAST_TTS_VOICE", "Kore"),
+            tts_voice_2=os.getenv("PODCAST_TTS_VOICE_2", "Puck"),
             edge_tts_voice=os.getenv("PODCAST_EDGE_TTS_VOICE", "pt-BR-FranciscaNeural"),
+            edge_tts_voice_2=os.getenv("PODCAST_EDGE_TTS_VOICE_2", "pt-BR-AntonioNeural"),
             embedding_model=os.getenv(
                 "PODCAST_EMBEDDING_MODEL",
                 "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
