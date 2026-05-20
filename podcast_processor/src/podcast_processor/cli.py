@@ -206,23 +206,40 @@ def run(
     if not skip_audio:
         provider = (tts_provider or settings.tts_provider).lower()
         if provider == "edge":
-            console.print(f"  synthesizing audio via Edge TTS ({settings.edge_tts_voice})…")
+            console.print(
+                f"  synthesizing audio via Edge TTS "
+                f"(Marina={settings.edge_tts_voice}, André={settings.edge_tts_voice_2})…"
+            )
             mp3_path = out_day / "podcast.mp3"
-            tts.synthesize_edge_to_mp3(settings.edge_tts_voice, script_text, mp3_path)
+            edge_voice_map = {
+                "Marina": settings.edge_tts_voice,
+                "André": settings.edge_tts_voice_2,
+            }
+            tts.synthesize_edge_to_mp3(
+                settings.edge_tts_voice, script_text, mp3_path, voice_map=edge_voice_map
+            )
             audio_relpath = mp3_path.name
             console.print(f"  audio → [bold]{mp3_path}[/bold]")
         elif provider == "gemini":
-            console.print(f"  synthesizing audio via Gemini TTS ({settings.tts_voice})…")
-            wav_path = out_day / "podcast.wav"
-            tts.synthesize_to_wav(
+            console.print(
+                f"  synthesizing audio via Gemini TTS "
+                f"(Marina={settings.tts_voice}, André={settings.tts_voice_2})…"
+            )
+            mp3_path = out_day / "podcast.mp3"
+            gemini_voice_map = {
+                "Marina": settings.tts_voice,
+                "André": settings.tts_voice_2,
+            }
+            tts.synthesize_to_mp3(
                 settings.require_google_key(),
                 settings.tts_model,
                 settings.tts_voice,
                 script_text,
-                wav_path,
+                mp3_path,
+                voice_map=gemini_voice_map,
             )
-            audio_relpath = wav_path.name
-            console.print(f"  audio → [bold]{wav_path}[/bold]")
+            audio_relpath = mp3_path.name
+            console.print(f"  audio → [bold]{mp3_path}[/bold]")
         else:
             raise typer.BadParameter(f"unknown tts provider: {provider!r}")
 
@@ -260,8 +277,10 @@ def info() -> None:
     console.print(f"groq_model       = {settings.groq_model}")
     console.print(f"tts_provider     = {settings.tts_provider}")
     console.print(f"tts_model        = {settings.tts_model}")
-    console.print(f"tts_voice        = {settings.tts_voice}")
-    console.print(f"edge_tts_voice   = {settings.edge_tts_voice}")
+    console.print(f"tts_voice        = {settings.tts_voice}  (Marina)")
+    console.print(f"tts_voice_2      = {settings.tts_voice_2}  (André)")
+    console.print(f"edge_tts_voice   = {settings.edge_tts_voice}  (Marina)")
+    console.print(f"edge_tts_voice_2 = {settings.edge_tts_voice_2}  (André)")
     console.print(f"embedding_model  = {settings.embedding_model}")
     console.print(f"input default    = {config.DEFAULT_INPUT_ROOT}")
     console.print(f"output default   = {config.DEFAULT_OUTPUT_ROOT}")

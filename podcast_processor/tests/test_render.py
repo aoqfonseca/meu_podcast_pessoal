@@ -9,7 +9,7 @@ def test_render_report_has_all_sections():
         hot_topics_md="- topic 1\n- topic 2",
         summaries=[("Title A", "body a"), ("Title B", "body b")],
         reading_table_md="| # | Título |\n|---|---|\n| 1 | x |",
-        audio_relpath="podcast.wav",
+        audio_relpath="podcast.mp3",
     )
     assert "# Podcast diário — 2026-05-18" in md
     assert "## 🔥 Tópicos quentes" in md
@@ -18,7 +18,7 @@ def test_render_report_has_all_sections():
     assert "### Title A" in md
     assert "### Title B" in md
     assert "## 🎧 Podcast" in md
-    assert "[Ouvir](podcast.wav)" in md
+    assert "[Ouvir](podcast.mp3)" in md
 
 
 def test_render_report_omits_audio_section_when_no_audio():

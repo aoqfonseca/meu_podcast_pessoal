@@ -21,6 +21,7 @@ dependencies = [
     "python-dotenv>=1.0",
     "rich>=13.7",
     "edge-tts>=7.0",
+    "lameenc>=1.7",
 ]
 
 [project.optional-dependencies]
