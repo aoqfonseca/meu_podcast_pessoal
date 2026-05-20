@@ -1,5 +1,50 @@
 [
   {
+    "nome": "Google AI Research",
+    "tags": ["IA", "LLM", "Gemini", "Research"],
+    "url": "https://blog.google/technology/ai/rss/"
+  },
+  {
+    "nome": "Google Developers",
+    "tags": ["TI", "Google IO", "Gemini", "Tools", "API"],
+    "url": "https://developers.googleblog.com/feeds/posts/default"
+  },
+  {
+    "nome": "OpenAI News",
+    "tags": ["IA", "LLM", "Tools", "API"],
+    "url": "https://openai.com/news/rss.xml"
+  },
+  {
+    "nome": "Anthropic",
+    "tags": ["IA", "LLM", "Anthropic", "Claude"],
+    "url": "https://www.anthropic.com/feed.xml"
+  },
+  {
+    "nome": "Hugging Face Blog",
+    "tags": ["IA", "LLM", "Tools", "Python", "OpenSource"],
+    "url": "https://huggingface.co/blog/feed.xml"
+  },
+  {
+    "nome": "LangChain Blog",
+    "tags": ["IA", "Agents", "Tools", "Python", "LLM"],
+    "url": "https://blog.langchain.dev/rss/"
+  },
+  {
+    "nome": "LlamaIndex Blog",
+    "tags": ["IA", "LLM", "RAG", "Python", "Tools"],
+    "url": "https://blog.llamaindex.ai/feed"
+  },
+  {
+    "nome": "Berkeley AI Research (BAIR)",
+    "tags": ["IA", "LLM", "Agents", "Research"],
+    "url": "https://bair.berkeley.edu/blog/feed.xml"
+  },
+  {
+    "nome": "Andrew karpathy",
+    "tags": ["Agents", "LLM", "Tesla", "IA", "TI", "Engineer"]
+    "url": "https://karpathy.bearblog.dev/feed/?type=rss"
+  },
+  {
     "nome": "Google Produtcts Feed",
     "tags": ["produtos", "google", "novidades", "IA"]
     "url": "https://blog.google/products-and-platforms/products/gemini/rss/"
