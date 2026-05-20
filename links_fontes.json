@@ -41,12 +41,12 @@
   },
   {
     "nome": "Andrew karpathy",
-    "tags": ["Agents", "LLM", "Tesla", "IA", "TI", "Engineer"]
+    "tags": ["Agents", "LLM", "Tesla", "IA", "TI", "Engineer"],
     "url": "https://karpathy.bearblog.dev/feed/?type=rss"
   },
   {
     "nome": "Google Produtcts Feed",
-    "tags": ["produtos", "google", "novidades", "IA"]
+    "tags": ["produtos", "google", "novidades", "IA"],
     "url": "https://blog.google/products-and-platforms/products/gemini/rss/"
   },
   {
