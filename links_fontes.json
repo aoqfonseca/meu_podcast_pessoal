@@ -1,5 +1,10 @@
 [
   {
+    "nome": "Google Produtcts Feed",
+    "tags": ["produtos", "google", "novidades", "IA"]
+    "url": "https://blog.google/products-and-platforms/products/gemini/rss/"
+  },
+  {
     "nome": "arXiv Computer Science",
     "tags": ["Papers", "Computer Science"],
     "url": "http://export.arxiv.org/rss/cs"
@@ -20,11 +25,6 @@
     "url": "https://hnrss.org/frontpage?points=50"
   },
   {
-    "nome": "GitHub Engineering Blog",
-    "tags": ["Software Engineering", "Boas Práticas", "IA"],
-    "url": "https://github.blog/category/engineering/feed/"
-  },
-  {
     "nome": "The Go Blog",
     "tags": ["Go", "Systems Programming"],
     "url": "https://go.dev/blog/feed.atom"
@@ -38,11 +38,6 @@
     "nome": "Python Insider",
     "tags": ["Python", "Updates"],
     "url": "https://blog.python.org/rss.xml"
-  },
-  {
-    "nome": "The Lead Dev",
-    "tags": ["Lideranca", "Emocional", "Soft Skills"],
-    "url": "https://leaddev.com/rss.xml"
   },
   {
     "nome": "DoorDash Engineering",
