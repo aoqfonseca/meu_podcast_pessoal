@@ -33,6 +33,7 @@ enum Mode {
     Editing,
     ConfirmDelete,
     ConfirmQuit,
+    Help,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -96,7 +97,7 @@ impl App {
             state,
             mode: Mode::List,
             edit: None,
-            status: "Press 'a' add | 'e' edit | 'd' delete | 's' save | 'q' quit".into(),
+            status: "Press '?' for help | 'a' add | 'e' edit | 'd' delete | 's' save | 'q' quit".into(),
             dirty: false,
         })
     }
@@ -279,6 +280,17 @@ fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) -> Resu
                 }
                 KeyCode::Down | KeyCode::Char('j') => app.select_next(),
                 KeyCode::Up | KeyCode::Char('k') => app.select_prev(),
+                KeyCode::Char('?') => {
+                    app.mode = Mode::Help;
+                    app.status = "Help — press Esc or '?' to close".into();
+                }
+                _ => {}
+            },
+            Mode::Help => match key.code {
+                KeyCode::Esc | KeyCode::Char('?') | KeyCode::Char('q') => {
+                    app.mode = Mode::List;
+                    app.status = "Press '?' for help".into();
+                }
                 _ => {}
             },
             Mode::Editing => handle_edit_key(app, key.code),
@@ -347,6 +359,57 @@ fn ui(f: &mut ratatui::Frame, app: &mut App) {
     if app.mode == Mode::Editing {
         render_edit_popup(f, app);
     }
+    if app.mode == Mode::Help {
+        render_help_popup(f);
+    }
+}
+
+fn render_help_popup(f: &mut ratatui::Frame) {
+    let area = centered_rect(60, 70, f.area());
+    f.render_widget(Clear, area);
+
+    let yellow = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
+    let dim = Style::default().fg(Color::DarkGray);
+    let section = |s: &'static str| Line::from(Span::styled(s, yellow));
+    let kb = |key: &'static str, desc: &'static str| {
+        Line::from(vec![
+            Span::styled(format!("  {key:<14}"), Style::default().fg(Color::Cyan)),
+            Span::raw(desc),
+        ])
+    };
+
+    let lines = vec![
+        section("List mode"),
+        kb("j / ↓", "Move selection down"),
+        kb("k / ↑", "Move selection up"),
+        kb("a", "Add a new link"),
+        kb("e", "Edit selected link"),
+        kb("d", "Delete selected link (confirm)"),
+        kb("s", "Save changes to disk"),
+        kb("?", "Toggle this help panel"),
+        kb("q", "Quit (prompts if unsaved)"),
+        Line::from(""),
+        section("Edit mode"),
+        kb("Tab", "Next field"),
+        kb("Shift+Tab", "Previous field"),
+        kb("Enter", "Commit edit (memory; press 's' to persist)"),
+        kb("Esc", "Cancel edit"),
+        Line::from(""),
+        section("Confirm prompts"),
+        kb("y / Y", "Confirm"),
+        kb("any other", "Cancel"),
+        Line::from(""),
+        Line::from(Span::styled("Press Esc or '?' to close", dim)),
+    ];
+
+    let p = Paragraph::new(lines)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Help — keybindings "),
+        )
+        .wrap(Wrap { trim: false });
+    f.render_widget(p, area);
 }
 
 fn render_header(f: &mut ratatui::Frame, area: Rect, app: &App) {
