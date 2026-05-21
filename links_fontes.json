@@ -1,92 +1,168 @@
 [
   {
     "nome": "Google AI Research",
-    "tags": ["IA", "LLM", "Gemini", "Research"],
+    "tags": [
+      "IA",
+      "LLM",
+      "Gemini",
+      "Research"
+    ],
     "url": "https://blog.google/technology/ai/rss/"
   },
   {
     "nome": "Google Developers",
-    "tags": ["TI", "Google IO", "Gemini", "Tools", "API"],
+    "tags": [
+      "TI",
+      "Google IO",
+      "Gemini",
+      "Tools",
+      "API"
+    ],
     "url": "https://developers.googleblog.com/feeds/posts/default"
   },
   {
     "nome": "OpenAI News",
-    "tags": ["IA", "LLM", "Tools", "API"],
+    "tags": [
+      "IA",
+      "LLM",
+      "Tools",
+      "API"
+    ],
     "url": "https://openai.com/news/rss.xml"
   },
   {
     "nome": "Anthropic",
-    "tags": ["IA", "LLM", "Anthropic", "Claude"],
+    "tags": [
+      "IA",
+      "LLM",
+      "Anthropic",
+      "Claude"
+    ],
     "url": "https://www.anthropic.com/feed.xml"
   },
   {
     "nome": "Hugging Face Blog",
-    "tags": ["IA", "LLM", "Tools", "Python", "OpenSource"],
+    "tags": [
+      "IA",
+      "LLM",
+      "Tools",
+      "Python",
+      "OpenSource"
+    ],
     "url": "https://huggingface.co/blog/feed.xml"
   },
   {
     "nome": "LangChain Blog",
-    "tags": ["IA", "Agents", "Tools", "Python", "LLM"],
+    "tags": [
+      "IA",
+      "Agents",
+      "Tools",
+      "Python",
+      "LLM"
+    ],
     "url": "https://blog.langchain.dev/rss/"
   },
   {
     "nome": "LlamaIndex Blog",
-    "tags": ["IA", "LLM", "RAG", "Python", "Tools"],
+    "tags": [
+      "IA",
+      "LLM",
+      "RAG",
+      "Python",
+      "Tools"
+    ],
     "url": "https://blog.llamaindex.ai/feed"
   },
   {
     "nome": "Berkeley AI Research (BAIR)",
-    "tags": ["IA", "LLM", "Agents", "Research"],
+    "tags": [
+      "IA",
+      "LLM",
+      "Agents",
+      "Research"
+    ],
     "url": "https://bair.berkeley.edu/blog/feed.xml"
   },
   {
     "nome": "Andrew karpathy",
-    "tags": ["Agents", "LLM", "Tesla", "IA", "TI", "Engineer"],
+    "tags": [
+      "Agents",
+      "LLM",
+      "Tesla",
+      "IA",
+      "TI",
+      "Engineer"
+    ],
     "url": "https://karpathy.bearblog.dev/feed/?type=rss"
   },
   {
     "nome": "Google Produtcts Feed",
-    "tags": ["produtos", "google", "novidades", "IA"],
+    "tags": [
+      "produtos",
+      "google",
+      "novidades",
+      "IA"
+    ],
     "url": "https://blog.google/products-and-platforms/products/gemini/rss/"
   },
   {
     "nome": "arXiv Computer Science",
-    "tags": ["Papers", "Computer Science"],
+    "tags": [
+      "Papers",
+      "Computer Science"
+    ],
     "url": "http://export.arxiv.org/rss/cs"
   },
   {
     "nome": "arXiv Computer Vision",
-    "tags": ["Papers", "Processamento de Imagens", "IA"],
+    "tags": [
+      "Papers",
+      "Processamento de Imagens",
+      "IA"
+    ],
     "url": "http://export.arxiv.org/rss/cs.CV"
   },
   {
     "nome": "arXiv Artificial Intelligence",
-    "tags": ["Papers", "IA", "LLM", "Agents"],
+    "tags": [
+      "Papers",
+      "IA",
+      "LLM",
+      "Agents"
+    ],
     "url": "http://export.arxiv.org/rss/cs.AI"
   },
   {
     "nome": "Hacker News (Top 50)",
-    "tags": ["Tech", "Software Engineering", "Startups"],
+    "tags": [
+      "Tech",
+      "Software Engineering",
+      "Startups"
+    ],
     "url": "https://hnrss.org/frontpage?points=50"
   },
   {
     "nome": "The Go Blog",
-    "tags": ["Go", "Systems Programming"],
+    "tags": [
+      "Go",
+      "Systems Programming"
+    ],
     "url": "https://go.dev/blog/feed.atom"
   },
   {
     "nome": "The Rust Blog",
-    "tags": ["Rust", "Systems Programming"],
+    "tags": [
+      "Rust",
+      "Systems Programming"
+    ],
     "url": "https://blog.rust-lang.org/feed.xml"
   },
   {
     "nome": "Python Insider",
-    "tags": ["Python", "Updates"],
+    "tags": [
+      "Python",
+      "Updates"
+    ],
     "url": "https://blog.python.org/rss.xml"
-  },
-  {
-    "nome": "DoorDash Engineering",
-    "tags": ["Software Engineering", "Distributed Systems"],
-    "url": "https://careersatdoordash.com/feed/"
   }
 ]
