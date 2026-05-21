@@ -33,6 +33,7 @@ enum Mode {
     Editing,
     ConfirmDelete,
     ConfirmQuit,
+    ConfirmSave,
     Help,
 }
 
@@ -76,6 +77,7 @@ struct App {
     edit: Option<EditBuf>,
     status: String,
     dirty: bool,
+    pending_quit: bool,
 }
 
 impl App {
@@ -99,6 +101,7 @@ impl App {
             edit: None,
             status: "Press '?' for help | 'a' add | 'e' edit | 'd' delete | 's' save | 'q' quit".into(),
             dirty: false,
+            pending_quit: false,
         })
     }
 
@@ -207,17 +210,84 @@ impl App {
     }
 }
 
+const LINKS_PATH_ENV: &str = "LINKS_TUI_PATH";
+
 fn main() -> Result<()> {
-    let path = std::env::args()
-        .nth(1)
-        .map(PathBuf::from)
-        .unwrap_or_else(default_links_path);
+    let path = match resolve_links_path()? {
+        Some(p) => p,
+        None => return Ok(()),
+    };
 
     let mut app = App::load(path)?;
     let mut terminal = setup_terminal()?;
     let res = run(&mut terminal, &mut app);
     restore_terminal(&mut terminal)?;
     res
+}
+
+/// Resolve the JSON path to read/save, with priority:
+/// 1. CLI arg (`--path <path>`, `--path=<path>`, or first positional)
+/// 2. `LINKS_TUI_PATH` env var
+/// 3. `../links_fontes.json` relative to current dir
+///
+/// Returns `Ok(None)` when `--help` was requested (caller should exit cleanly).
+fn resolve_links_path() -> Result<Option<PathBuf>> {
+    let mut args = std::env::args().skip(1);
+    let mut cli_path: Option<PathBuf> = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "-h" | "--help" => {
+                print_usage();
+                return Ok(None);
+            }
+            "-p" | "--path" => {
+                let v = args
+                    .next()
+                    .context("--path requires a value")?;
+                cli_path = Some(PathBuf::from(v));
+            }
+            s if s.starts_with("--path=") => {
+                cli_path = Some(PathBuf::from(&s["--path=".len()..]));
+            }
+            s if cli_path.is_none() && !s.starts_with('-') => {
+                cli_path = Some(PathBuf::from(s));
+            }
+            other => {
+                anyhow::bail!("unknown argument: {other} (try --help)");
+            }
+        }
+    }
+
+    if let Some(p) = cli_path {
+        return Ok(Some(p));
+    }
+    if let Ok(env_path) = std::env::var(LINKS_PATH_ENV) {
+        if !env_path.is_empty() {
+            return Ok(Some(PathBuf::from(env_path)));
+        }
+    }
+    Ok(Some(default_links_path()))
+}
+
+fn print_usage() {
+    println!(
+        "links_tui — TUI editor for links JSON\n\
+         \n\
+         USAGE:\n    \
+             links_tui [OPTIONS] [PATH]\n\
+         \n\
+         ARGS:\n    \
+             <PATH>    Path to the JSON file (positional, optional)\n\
+         \n\
+         OPTIONS:\n    \
+             -p, --path <PATH>   Path to the JSON file\n    \
+             -h, --help          Print this help and exit\n\
+         \n\
+         ENVIRONMENT:\n    \
+             {LINKS_PATH_ENV}    Path to the JSON file (used when no CLI path is given)\n\
+         \n\
+         Priority: CLI arg > {LINKS_PATH_ENV} > ../links_fontes.json"
+    );
 }
 
 fn default_links_path() -> PathBuf {
@@ -261,15 +331,18 @@ fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) -> Resu
                 KeyCode::Char('q') => {
                     app.mode = Mode::ConfirmQuit;
                     app.status = if app.dirty {
-                        "Unsaved changes. Quit anyway? (y/n)".into()
+                        "Unsaved changes — save before quitting? (y=save & quit, n=discard & quit, Esc=cancel)".into()
                     } else {
                         "Quit links_tui? (y/n)".into()
                     };
                 }
-                KeyCode::Char('s') => match app.save() {
-                    Ok(()) => {}
-                    Err(e) => app.status = format!("Save failed: {e}"),
-                },
+                KeyCode::Char('s') => {
+                    app.mode = Mode::ConfirmSave;
+                    app.status = format!(
+                        "Apply changes and replace '{}'? (y/n)",
+                        app.path.display()
+                    );
+                }
                 KeyCode::Char('a') => app.start_add(),
                 KeyCode::Char('e') => app.start_edit(),
                 KeyCode::Char('d') => {
@@ -304,13 +377,54 @@ fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) -> Resu
                     app.status = "Delete cancelled.".into();
                 }
             },
-            Mode::ConfirmQuit => match key.code {
-                KeyCode::Char('y') | KeyCode::Char('Y') => return Ok(()),
+            Mode::ConfirmSave => match key.code {
+                KeyCode::Char('y') | KeyCode::Char('Y') => {
+                    match app.save() {
+                        Ok(()) => {
+                            if app.pending_quit {
+                                return Ok(());
+                            }
+                        }
+                        Err(e) => {
+                            app.status = format!("Save failed: {e}");
+                            app.pending_quit = false;
+                        }
+                    }
+                    app.mode = Mode::List;
+                }
                 _ => {
                     app.mode = Mode::List;
-                    app.status = "Continuing. Press 's' to save.".into();
+                    app.pending_quit = false;
+                    app.status = "Save cancelled. File unchanged.".into();
                 }
             },
+            Mode::ConfirmQuit => {
+                if app.dirty {
+                    match key.code {
+                        KeyCode::Char('y') | KeyCode::Char('Y') => {
+                            app.pending_quit = true;
+                            app.mode = Mode::ConfirmSave;
+                            app.status = format!(
+                                "Apply changes and replace '{}'? (y/n)",
+                                app.path.display()
+                            );
+                        }
+                        KeyCode::Char('n') | KeyCode::Char('N') => return Ok(()),
+                        _ => {
+                            app.mode = Mode::List;
+                            app.status = "Quit cancelled.".into();
+                        }
+                    }
+                } else {
+                    match key.code {
+                        KeyCode::Char('y') | KeyCode::Char('Y') => return Ok(()),
+                        _ => {
+                            app.mode = Mode::List;
+                            app.status = "Quit cancelled.".into();
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -365,6 +479,55 @@ fn ui(f: &mut ratatui::Frame, app: &mut App) {
     if app.mode == Mode::ConfirmQuit {
         render_confirm_quit_popup(f, app);
     }
+    if app.mode == Mode::ConfirmSave {
+        render_confirm_save_popup(f, app);
+    }
+}
+
+fn render_confirm_save_popup(f: &mut ratatui::Frame, app: &App) {
+    let area = centered_rect(60, 30, f.area());
+    f.render_widget(Clear, area);
+
+    let green = Style::default().fg(Color::Green).add_modifier(Modifier::BOLD);
+    let dim = Style::default().fg(Color::DarkGray);
+
+    let lines = vec![
+        Line::from(Span::styled(
+            "Apply changes and replace file content?",
+            green,
+        )),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("File:  ", Style::default().fg(Color::Yellow)),
+            Span::raw(app.path.display().to_string()),
+        ]),
+        Line::from(vec![
+            Span::styled("Links: ", Style::default().fg(Color::Yellow)),
+            Span::raw(app.links.len().to_string()),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("  [y]", Style::default().fg(Color::Cyan)),
+            Span::raw(" Apply & overwrite    "),
+            Span::styled("[n / Esc]", Style::default().fg(Color::Cyan)),
+            Span::raw(" Cancel"),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(
+            "The previous file content will be replaced.",
+            dim,
+        )),
+    ];
+
+    let p = Paragraph::new(lines)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Confirm save ")
+                .border_style(green),
+        )
+        .wrap(Wrap { trim: false });
+    f.render_widget(p, area);
 }
 
 fn render_confirm_quit_popup(f: &mut ratatui::Frame, app: &App) {
@@ -377,22 +540,32 @@ fn render_confirm_quit_popup(f: &mut ratatui::Frame, app: &App) {
     let mut lines = vec![Line::from(Span::styled("Quit links_tui?", yellow))];
     if app.dirty {
         lines.push(Line::from(Span::styled(
-            "You have unsaved changes — they will be lost.",
+            "You have unsaved changes.",
             Style::default().fg(Color::Red),
         )));
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![
+            Span::styled("  [y]", Style::default().fg(Color::Cyan)),
+            Span::raw(" Save & quit    "),
+            Span::styled("[n]", Style::default().fg(Color::Cyan)),
+            Span::raw(" Discard & quit    "),
+            Span::styled("[Esc]", Style::default().fg(Color::Cyan)),
+            Span::raw(" Cancel"),
+        ]));
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            "'y' will prompt to confirm applying changes to the file.",
+            dim,
+        )));
+    } else {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![
+            Span::styled("  [y]", Style::default().fg(Color::Cyan)),
+            Span::raw(" Quit    "),
+            Span::styled("[n / Esc]", Style::default().fg(Color::Cyan)),
+            Span::raw(" Cancel"),
+        ]));
     }
-    lines.push(Line::from(""));
-    lines.push(Line::from(vec![
-        Span::styled("  [y]", Style::default().fg(Color::Cyan)),
-        Span::raw(" Quit    "),
-        Span::styled("[n / Esc]", Style::default().fg(Color::Cyan)),
-        Span::raw(" Cancel"),
-    ]));
-    lines.push(Line::from(""));
-    lines.push(Line::from(Span::styled(
-        "Press 's' first to save before quitting.",
-        dim,
-    )));
 
     let p = Paragraph::new(lines)
         .block(
