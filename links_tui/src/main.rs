@@ -259,12 +259,12 @@ fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) -> Resu
         match app.mode {
             Mode::List => match key.code {
                 KeyCode::Char('q') => {
-                    if app.dirty {
-                        app.mode = Mode::ConfirmQuit;
-                        app.status = "Unsaved changes. Quit anyway? (y/n)".into();
+                    app.mode = Mode::ConfirmQuit;
+                    app.status = if app.dirty {
+                        "Unsaved changes. Quit anyway? (y/n)".into()
                     } else {
-                        return Ok(());
-                    }
+                        "Quit links_tui? (y/n)".into()
+                    };
                 }
                 KeyCode::Char('s') => match app.save() {
                     Ok(()) => {}
@@ -362,6 +362,47 @@ fn ui(f: &mut ratatui::Frame, app: &mut App) {
     if app.mode == Mode::Help {
         render_help_popup(f);
     }
+    if app.mode == Mode::ConfirmQuit {
+        render_confirm_quit_popup(f, app);
+    }
+}
+
+fn render_confirm_quit_popup(f: &mut ratatui::Frame, app: &App) {
+    let area = centered_rect(50, 25, f.area());
+    f.render_widget(Clear, area);
+
+    let yellow = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
+    let dim = Style::default().fg(Color::DarkGray);
+
+    let mut lines = vec![Line::from(Span::styled("Quit links_tui?", yellow))];
+    if app.dirty {
+        lines.push(Line::from(Span::styled(
+            "You have unsaved changes — they will be lost.",
+            Style::default().fg(Color::Red),
+        )));
+    }
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![
+        Span::styled("  [y]", Style::default().fg(Color::Cyan)),
+        Span::raw(" Quit    "),
+        Span::styled("[n / Esc]", Style::default().fg(Color::Cyan)),
+        Span::raw(" Cancel"),
+    ]));
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        "Press 's' first to save before quitting.",
+        dim,
+    )));
+
+    let p = Paragraph::new(lines)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Confirm quit ")
+                .border_style(yellow),
+        )
+        .wrap(Wrap { trim: false });
+    f.render_widget(p, area);
 }
 
 fn render_help_popup(f: &mut ratatui::Frame) {
