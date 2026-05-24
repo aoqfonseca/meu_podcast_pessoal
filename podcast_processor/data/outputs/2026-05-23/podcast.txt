@@ -1,0 +1,43 @@
+[André]: Olá, bem-vindo a mais um episódio do Café e uma ideia com seus drops diários de novidades e o que está rolando por aí!
+
+[Marina]: E aí, André! Animada pra mais um dia de tecnologia fresquinha pra gente mastigar.
+
+[André]: Com certeza, Marina! E hoje o assunto principal parece ser a Google, que está a todo vapor com a sua conferência I/O. Eles estão falando muito sobre agentes de IA e como tornar isso mais acessível.
+
+[Marina]: Nossa, sim! Vi que eles anunciaram o ADK, que é o Agent Development Kit, tanto para Kotlin quanto para Android. Isso significa que criar esses agentes de IA vai ficar mais fácil, né? Tipo, direto no celular.
+
+[André]: Exatamente! E o legal é que eles estão pensando em rodar esses modelos de IA direto no dispositivo, o que é ótimo para privacidade e velocidade. O Google Tensor SDK Beta com LiteRT parece ser a chave para isso, otimizando tudo para os chips deles.
+
+[Marina]: Ah, isso é genial! Imagina ter um assistente super inteligente no seu celular que não precisa mandar tudo pra nuvem. E falando em nuvem, eles também estão expandindo o Gemini para o Google Home.
+
+[André]: Pois é, o Gemini for Home promete trazer inteligência de câmera, perguntas contextuais sobre a casa e até resumos diários. Parece que a ideia é que até provedores de internet possam oferecer isso como um serviço agregado.
+
+[Marina]: Que loucura! Já consigo me ver pedindo pro meu Google Home me contar o que aconteceu na casa enquanto eu estava fora. E o Gemini CLI sendo substituído pelo Antigravity CLI também chamou minha atenção.
+
+[André]: Sim, o Antigravity CLI é a nova plataforma "agent-first" deles, construída em Go para ser mais rápida e com fluxos de trabalho assíncronos. Parece que a Google está realmente apostando em unificar tudo para os desenvolvedores.
+
+[Marina]: Falando em desenvolvedores, como a gente já comentou semana passada, a comunidade Google Cloud x NVIDIA atingiu 100 mil membros! Eles estão oferecendo caminhos de aprendizado para otimização de LLMs e IA agentic.
+
+[André]: Isso é um sinal forte de que a IA está se tornando cada vez mais uma ferramenta para resolver problemas complexos, não só na tecnologia, mas na ciência também. Vi que empresas como Daiichi Sankyo e Bayer estão usando IA para acelerar pesquisas.
+
+[Marina]: Que demais! E por outro lado, nem tudo são flores, né? Temos aquelas preocupações com privacidade. A Oura confirmou que recebe demandas governamentais por dados de usuários, e o FBI quer acesso quase em tempo real a leitores de placas de veículos.
+
+[André]: Pois é, a linha entre segurança e privacidade está cada vez mais tênue. E essa história de empresas de tecnologia compartilhando nomes de funcionários de órgãos reguladores holandeses com o Senado dos EUA é bem tensa geopoliticamente.
+
+[Marina]: Nossa, isso é bem sério. Mostra como as coisas estão interligadas e como os dados se tornaram um campo de batalha. Mas mudando um pouco de assunto, vi um artigo super interessante sobre o elemento `<dl>` em HTML.
+
+[André]: Ah, o `<dl>`! Eu adoro quando a gente fala de coisas mais "básicas" da web que têm um impacto tão grande. Ele é perfeito para listas de pares nome-valor, e melhora muito a acessibilidade.
+
+[Marina]: Sim! E o artigo sobre o microcódigo do Intel 80386 desmontado também me deixou fascinada. Imagina ter que desvendar um chip antigo assim, com processamento de imagem e redes neurais.
+
+[André]: É um trabalho de arqueologia digital, né? E para fechar com chave de ouro, temos um artigo sobre a pesquisa científica que levou a um novo medicamento para apneia do sono.
+
+[Marina]: Que notícia maravilhosa! É muito bom ver a tecnologia e a ciência caminhando juntas para melhorar a vida das pessoas.
+
+[André]: Com certeza. E essa é a nossa visão geral do que está rolando no mundo tech. A IA está em todo lugar, otimizando tudo, desde nossos celulares até a pesquisa científica.
+
+[Marina]: E a gente tem que ficar de olho nas questões de privacidade e transparência que vêm junto com tudo isso. É um equilíbrio delicado.
+
+[André]: Exato. Por hoje é isso, pessoal! A gente se ouve amanhã com mais Café e uma ideia.
+
+[Marina]: Até lá! Tchau!
