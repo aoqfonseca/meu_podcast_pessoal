@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     image: meu-podcast-pessoal:latest
     container_name: meu-podcast-pessoal
+    user: "${UID}:${GUID}"
     environment:
       # --- API keys (set in .env at project root or export before running) ---
       # Required when PODCAST_LLM_PROVIDER=gemini (default).
